@@ -11,20 +11,27 @@ class StripeV1Client:
             if response["status"] == "captured":
                 return response
 
-            time.sleep(1)
+            if response["reason"] == "rate_limited":
+                time.sleep(2)
+            else:
+                time.sleep(1)
 
-        return {
-            "provider": "stripe_v1",
-            "status": "failed",
-            "reason": "timeout_after_retries",
-            "amount": amount,
-            "currency": currency
-        }
+        return self._fallback_payment_record(amount, currency)
 
     def _send_capture_request(self, amount, currency):
         return {
             "provider": "stripe_v1",
-            "status": "captured",
+            "status": "failed",
+            "reason": "rate_limited",
+            "amount": amount,
+            "currency": currency
+        }
+
+    def _fallback_payment_record(self, amount, currency):
+        return {
+            "provider": "stripe_v1",
+            "status": "queued_for_manual_retry",
+            "reason": "stripe_v1_rate_limited",
             "amount": amount,
             "currency": currency
         }
