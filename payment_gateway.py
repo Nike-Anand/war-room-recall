@@ -2,6 +2,8 @@ import time
 
 
 class StripeV1Client:
+    deprecated = True
+
     def capture_payment(self, amount, currency):
         max_retries = 3
 
@@ -37,9 +39,20 @@ class StripeV1Client:
         }
 
 
+class AdyenGateway:
+    def capture_payment(self, amount, currency):
+        return {
+            "provider": "adyen",
+            "status": "captured",
+            "amount": amount,
+            "currency": currency,
+            "compliance": "pci_dss_ready"
+        }
+
+
 class CheckoutService:
     def __init__(self):
-        self.gateway = StripeV1Client()
+        self.gateway = AdyenGateway()
 
     def checkout(self, amount, currency):
         return self.gateway.capture_payment(amount, currency)
